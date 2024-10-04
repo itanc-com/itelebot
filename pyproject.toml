@@ -1,0 +1,25 @@
+[project]
+name = "telebot"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "python-telegram-bot>=21.4",
+]
+
+[tool.poetry]
+name = "telebot"
+version = "0.1.0"
+description = ""
+authors = ["ArshiyaDev <arshiyakhalili6@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "3.11.9"
+python-telegram-bot = {extras = ["all"], version = "^21.4"}
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
