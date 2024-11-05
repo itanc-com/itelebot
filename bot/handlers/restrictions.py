@@ -15,9 +15,7 @@ class Restriction:
         self.delete_job = delete_job
         self.commands = commands
 
-    async def restrict_non_admins(
-        self, update: Update, context: ContextTypes.DEFAULT_TYPE
-    ):
+    async def restrict_non_admins(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         user = update.effective_user
         chat = update.effective_chat
         message = update.effective_message
@@ -36,9 +34,7 @@ class Restriction:
                 try:
                     # Try to delete the message
                     await message.delete()
-                    logger.info(
-                        f"Deleted message from non-admin user {user.id} in chat {chat.id}"
-                    )
+                    logger.info(f"Deleted message from non-admin user {user.id} in chat {chat.id}")
                 except BadRequest as e:
                     logger.error(f"Failed to delete message: {e}")
 
@@ -48,9 +44,7 @@ class Restriction:
                         f"Sorry {user.mention_html()}, only admins can send messages in this group.",
                         parse_mode="HTML",
                     )
-                    logger.info(
-                        f"Sent warning to non-admin user {user.id} in chat {chat.id}"
-                    )
+                    logger.info(f"Sent warning to non-admin user {user.id} in chat {chat.id}")
 
                     context.job_queue.run_once(
                         self.delete_job.delete_warning,
@@ -65,11 +59,26 @@ class Restriction:
         except Exception as e:
             logger.error(f"Error in restrict_non_admins: {e}", exc_info=True)
 
-    async def close_or_open_group_handler(
-        self, update: Update, context: ContextTypes.DEFAULT_TYPE
-    ) -> None:
+    async def close_or_open_group_handler(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        chat_id = update.effective_chat.id
+        message_id = update.effective_message.id
         text = update.message.text
         if text == "$close":
             await self.commands.restrict_group(update, context)
+
+            context.job_queue.run_once(
+                self.delete_job.delete_warning,
+                10,
+                chat_id=chat_id,
+                data=message_id,
+                name=f"delete_warning_{message_id}",
+            )
         elif text == "$open":
             await self.commands.open_group(update, context)
+            context.job_queue.run_once(
+                self.delete_job.delete_warning,
+                10,
+                chat_id=chat_id,
+                data=message_id,
+                name=f"delete_warning_{message_id}",
+            )
