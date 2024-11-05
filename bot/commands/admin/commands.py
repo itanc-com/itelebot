@@ -13,20 +13,15 @@ class Commands:
         self.delete_job = delete_job
 
     async def start(self, update: Update, context):
-        await update.message.reply_text(
-            "Bot started. Only admins can send messages now."
-        )
+        await update.message.reply_text("Bot started. Only admins can send messages now.")
 
     async def help_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("Write valid command ")
 
-    async def restrict_group(
-        self, update: Update, context: ContextTypes.DEFAULT_TYPE
-    ) -> None:
+    async def restrict_group(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         chat_id = update.effective_chat.id
         user = update.effective_user
 
-        # Check if the user is an admin
         admins = await context.bot.get_chat_administrators(chat_id)
         if user.id in [admin.user.id for admin in admins]:
             await context.bot.set_chat_permissions(
@@ -41,9 +36,7 @@ class Commands:
                     can_pin_messages=False,
                 ),
             )
-            warning = await update.message.reply_text(
-                "The group is now restricted. Only admins can send messages."
-            )
+            warning = await update.message.reply_text("The group is now restricted. Only admins can send messages.")
             context.job_queue.run_once(
                 self.delete_job.delete_warning,
                 10,
@@ -52,9 +45,7 @@ class Commands:
                 name=f"delete_warning_{warning.message_id}",
             )
         else:
-            warning = await update.message.reply_text(
-                "You don't have permission to restrict the group."
-            )
+            warning = await update.message.reply_text("You don't have permission to restrict the group.")
             context.job_queue.run_once(
                 self.delete_job.delete_warning,
                 10,
@@ -64,9 +55,7 @@ class Commands:
             )
 
     # Command to remove restrictions and open the group
-    async def open_group(
-        self, update: Update, context: ContextTypes.DEFAULT_TYPE
-    ) -> None:
+    async def open_group(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         chat_id = update.effective_chat.id
         user = update.effective_user
 
@@ -85,9 +74,7 @@ class Commands:
                     can_pin_messages=False,
                 ),
             )
-            warning = await update.message.reply_text(
-                "The group is now open. Everyone can send messages."
-            )
+            warning = await update.message.reply_text("The group is now open. Everyone can send messages.")
 
             context.job_queue.run_once(
                 self.delete_job.delete_warning,
@@ -97,9 +84,7 @@ class Commands:
                 name=f"delete_warning_{warning.message_id}",
             )
         else:
-            warning = await update.message.reply_text(
-                "You don't have permission to restrict the group."
-            )
+            warning = await update.message.reply_text("You don't have permission to restrict the group.")
             context.job_queue.run_once(
                 self.delete_job.delete_warning,
                 10,
