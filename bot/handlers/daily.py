@@ -32,12 +32,7 @@ class DailyHanlder:
             can_invite_users=True,
             can_pin_messages=False,
         )
-        await context.bot.set_chat_permissions(
-            chat_id=chat_id, permissions=chat_permissions
-        )
-        await context.bot.send_message(
-            chat_id=chat_id, text=self.messages["morning_message"]
-        )
+        await context.bot.set_chat_permissions(chat_id=chat_id, permissions=chat_permissions)
 
     async def close_group(self, context: ContextTypes.DEFAULT_TYPE):
         chat_id = settings.CHAT_ID
@@ -51,29 +46,27 @@ class DailyHanlder:
             can_invite_users=False,
             can_pin_messages=False,
         )
-        await context.bot.set_chat_permissions(
-            chat_id=chat_id, permissions=chat_permissions
-        )
-        await context.bot.send_message(
-            chat_id=chat_id, text=self.messages["night_message"]
+        await context.bot.set_chat_permissions(chat_id=chat_id, permissions=chat_permissions)
+        warning = await context.bot.send_message(chat_id=chat_id, text=self.messages["night_message"])
+
+        context.job_queue.run_once(
+            self.delete_job.delete_warning,
+            timedelta(hours=5, minutes=58),
+            chat_id=chat_id,
+            data=warning.message_id,
+            name=f"delete_warning_{warning.message_id}",
         )
 
-    async def welcome_new_member(
-        self, update: Update, context: ContextTypes.DEFAULT_TYPE
-    ) -> None:
+    async def welcome_new_member(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         chat = update.effective_chat
         message = update.effective_message
         for member in update.message.new_chat_members:
-            message = self.messages["welcome_message"].format(
-                user=member.first_name, group=update.effective_chat.title
-            )
+            message = self.messages["welcome_message"].format(user=member.first_name, group=update.effective_chat.title)
             try:
                 self.users_repo.add_user(tg_id=member.id, username=member.username)
             except ValueError as e:
                 logger.error(f"Failed to insert user in databse: {e}")
-            warning = await context.bot.send_message(
-                chat_id=update.effective_chat.id, text=message
-            )
+            warning = await context.bot.send_message(chat_id=update.effective_chat.id, text=message)
 
             context.job_queue.run_once(
                 self.delete_job.delete_warning,
@@ -82,9 +75,7 @@ class DailyHanlder:
                 chat_id=chat.id,
             )
 
-    async def check_invited_user(
-        self, update: Update, context: ContextTypes.DEFAULT_TYPE
-    ):
+    async def check_invited_user(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         user = update.effective_user
         chat = update.effective_chat
         message = update.effective_message
@@ -108,9 +99,7 @@ class DailyHanlder:
                 try:
                     # Try to delete the message
                     await message.delete()
-                    logger.info(
-                        f"Deleted message from non-admin user in chat {chat.id}"
-                    )
+                    logger.info(f"Deleted message from non-admin user in chat {chat.id}")
                 except BadRequest as e:
                     logger.error(f"Failed to delete message: {e}")
 
@@ -120,9 +109,7 @@ class DailyHanlder:
                         "برای ارسال پیام شما باید یک نفر دیگر رو نیز به گروه اضافه نمایید ",
                         parse_mode="HTML",
                     )
-                    logger.info(
-                        f"Sent warning to non-admin user {user.id} in chat {chat.id}"
-                    )
+                    logger.info(f"Sent warning to non-admin user {user.id} in chat {chat.id}")
 
                     context.job_queue.run_once(
                         self.delete_job.delete_warning,
@@ -142,6 +129,7 @@ class DailyHanlder:
         chat = update.effective_chat
         message = update.effective_message
         text = message.text
+        chat_id = update.effective_chat.id
 
         member = await chat.get_member(user.id)
         is_admin = member.status in [
@@ -149,10 +137,7 @@ class DailyHanlder:
             ChatMemberStatus.OWNER,
         ]
         if not is_admin:
-            warning = await update.message.reply_text(
-                "This command is only available to admins."
-            )
-            await message.delete()
+            warning = await update.message.reply_text("This command is only available to admins.")
 
             context.job_queue.run_once(
                 self.delete_job.delete_warning,
@@ -172,23 +157,14 @@ class DailyHanlder:
         user = self.users_repo.silent_user(target_user_id, silence_time)
 
         try:
-            # Create a ChatMemberBanned object
-            # banned_member = ChatMemberBanned(
-            #     user=target_user,
-            #     until_date=until_date
-            # )
-
-            # Apply the ban
             await context.bot.restrict_chat_member(
                 chat_id=update.effective_chat.id,
                 user_id=target_user_id,
                 permissions=ChatPermissions(can_send_messages=False),
-                until_date=datetime.now() + timedelta(minutes=silence_time),
+                until_date=datetime.now() + timedelta(hours=silence_time),
             )
 
-            reply_message = await update.message.reply_text(
-                f"User {target_user.first_name} has been silenced."
-            )
+            reply_message = await update.message.reply_text(f"User {target_user.first_name} has been silenced.")
 
             context.job_queue.run_once(
                 self.delete_job.delete_warning,
@@ -196,6 +172,13 @@ class DailyHanlder:
                 chat_id=chat.id,
                 data=reply_message.message_id,
                 name=f"delete_warning_{reply_message.message_id}",
+            )
+            context.job_queue.run_once(
+                self.delete_job.delete_warning,
+                10,
+                chat_id=chat_id,
+                data=message.id,
+                name=f"delete_warning_{message.id}",
             )
 
         except Exception as e:

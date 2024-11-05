@@ -12,7 +12,7 @@ This is a Telegram bot designed to help administrators manage their Telegram gro
 ### Prerequisites
 
 - **Python 3.11.9+**
-- **Poetry**: A dependency manager for Python.
+- **uv**: A dependency manager for Python.
 
 ### Installation
 
@@ -20,46 +20,42 @@ This is a Telegram bot designed to help administrators manage their Telegram gro
 
     ```bash
     git clone git@github.com:itanc-com/itelebot.git
-    cd TeleBot
+    cd itelebot
     ```
 
-2. **Install Poetry**:
+2. **Install uv**:
 
-    If you don't have Poetry installed, you can install it via the following command:
+    If you don't have uv installed, you can install it via the following command:
 
     ```bash
-    curl -sSL https://install.python-poetry.org | python3 -
+    curl -LsSf https://astral.sh/uv/install.sh | sh
     ```
 
     Or via pipx:
 
     ```bash
-    pipx install poetry
+    pipx install uv
     ```
 
-3. **Activate the virtual environment**:
+3. **Create the virtual environment**:
 
-    Activate the virtual environment created by Poetry:
+    Create virtual environment by uv:
 
     ```bash
-    poetry shell
+    uv sync
     ```
-
-4. **Install dependencies**:
-
-    Use Poetry to install the project dependencies:
 
     ```bash
-    poetry install
+    source .venv/bin/activate
     ```
 
-5. **Set up environment variables**:
+4. **Set up environment variables**:
 
     Create a env folder in that folder create `.env` file in the root directory and add your Telegram bot token and other configuration settings:
 
     ```env
     TOKEN=your-telegram-bot-token
-    BOT_USERNAME="@your bot user name "
+    BOT_USERNAME="@your bot username "
     CHAT_ID="-xxxxxx"
     POOL_SIZE =x
     TIMEOUT=x
@@ -69,7 +65,7 @@ This is a Telegram bot designed to help administrators manage their Telegram gro
 
     Replace `your-telegram-bot-token` and `your bot username` with the actual token provided by the BotFather.
 
-6. **Run the bot**:
+5. **Run the bot**:
 
     Start the bot by running the main script:
 

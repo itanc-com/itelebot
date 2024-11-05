@@ -12,7 +12,6 @@ BASE_PATH = ROOT_DIR / STATIC_PATH
 
 def load_messages(file_name: str):
     file_path = BASE_PATH / file_name
-    print(f"--> {file_path}")
     try:
         with open(file_path, "r", encoding="utf-8") as file:
             return json.load(file)
