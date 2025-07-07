@@ -39,14 +39,14 @@ def main():
             )  # Pass the db_session
             .build()
         )
-        delete_job_obj = DeleteJobs()
+        #delete_job_obj = DeleteJobs()
 
-        daily_hanlder_obj = DailyHanlder(
-            delete_job=delete_job_obj, db_session=db_session
-        )
-        daily_jobs_manager = DailyJobsManager(application.job_queue, daily_hanlder_obj)
-        daily_jobs_manager.schedule_close_group(hours=2, minute=0)
-        daily_jobs_manager.schedule_open_group(hours=8, minitue=0)
+        #daily_hanlder_obj = DailyHanlder(
+        #   delete_job=delete_job_obj, db_session=db_session
+        #)
+        #daily_jobs_manager = DailyJobsManager(application.job_queue, daily_hanlder_obj)
+        #daily_jobs_manager.schedule_close_group(hours=2, minute=0)
+        #daily_jobs_manager.schedule_open_group(hours=8, minitue=0)
 
         application.run_polling()
     except Exception as e:
